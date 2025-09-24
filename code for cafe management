@@ -1,0 +1,75 @@
+# cafe_management.py
+import qrcode
+
+# Menu dictionary with item: price
+menu = {
+    "pizza": 99,
+    "burger": 149,
+    "pasta": 129,
+    "coffee": 49
+}
+
+TAX_RATE = 0.05  # 5% tax
+
+def display_menu():
+    print("\n===== WELCOME TO VK CAFE =====")
+    print("Here's our menu:")
+    for item, price in menu.items():
+        print(f"{item.title():<10} Rs {price}")
+    print("=" * 30)
+
+def take_order():
+    order_list = []
+    total = 0
+
+    while True:
+        item = input("\nEnter the name of the item you want to order: ").strip().lower()
+        if item in menu:
+            quantity = input(f"Enter quantity for {item.title()}: ").strip()
+            if quantity.isdigit() and int(quantity) > 0:
+                quantity = int(quantity)
+                cost = menu[item] * quantity
+                total += cost
+                order_list.append((item, quantity, cost))
+                print(f"✅ {quantity} x {item.title()} added to your order. Subtotal: Rs {total}")
+            else:
+                print("❌ Invalid quantity! Please enter a number greater than 0.")
+        else:
+            print("❌ Sorry, we don't have that item.")
+
+        more = input("Do you want to order anything else? (yes/no): ").strip().lower()
+        if more != "yes":
+            break
+
+    return order_list, total
+
+def generate_bill(order_list, total):
+    print("\n===== BILL =====")
+    for item, qty, cost in order_list:
+        print(f"{item.title():<10} x{qty:<3} Rs {cost}")
+    tax_amount = total * TAX_RATE
+    final_amount = total + tax_amount
+    print(f"\nSubtotal: Rs {total}")
+    print(f"Tax (5%): Rs {round(tax_amount, 2)}")
+    print(f"Total to Pay: Rs {round(final_amount, 2)}")
+    print("=" * 30)
+    return round(final_amount, 2)
+
+def generate_payment_qr(amount):
+    upi_id = input("Enter UPI ID for payment: ").strip()
+    pay_url = f"upi://pay?pa={upi_id}&pn=VK%20Cafe&am={amount}&cu=INR"
+    qr = qrcode.make(pay_url)
+    qr.save("payment_qr.png")
+    print("📷 Payment QR code saved as 'payment_qr.png'. Scan to pay.")
+
+# Main Program
+display_menu()
+orders, total = take_order()
+final_amount = generate_bill(orders, total)
+
+choice = input("Do you want to generate a payment QR code? (yes/no): ").strip().lower()
+if choice == "yes":
+    generate_payment_qr(final_amount)
+    print("✅ Thank you for visiting VK Cafe!")
+else:
+    print("✅ Thank you for visiting VK Cafe! Please pay at the counter.")
